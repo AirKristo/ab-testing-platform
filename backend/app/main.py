@@ -6,7 +6,7 @@ FastAPI application entry point for the A/B Testing Platform.
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.app.config import get_settings
+from app.config import get_settings
 
 settings = get_settings()
 
