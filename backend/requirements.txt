@@ -1,0 +1,45 @@
+# ==============================
+# Web Framework
+# ==============================
+fastapi==0.104.1
+uvicorn[standard]==0.24.0     # ASGI server to run FastAPI
+
+# ==============================
+# Database
+# ==============================
+sqlalchemy==2.0.23             # ORM - explicit, readable queries
+psycopg2-binary==2.9.9        # PostgreSQL driver (binary for easy install)
+alembic==1.13.0                # Database migrations
+
+# ==============================
+# Data Validation
+# ==============================
+pydantic==2.5.2                # Data validation with type hints
+pydantic-settings==2.1.0      # Settings management from env vars
+
+# ==============================
+# Data & Statistics
+# ==============================
+numpy==1.26.2
+pandas==2.1.4
+scipy==1.11.4
+
+# ==============================
+# Testing
+# ==============================
+pytest==7.4.3
+pytest-asyncio==0.23.2        # Async test support for FastAPI
+httpx==0.25.2                  # Async HTTP client for testing FastAPI
+
+# ==============================
+# Code Quality
+# ==============================
+black==23.12.0                 # Code formatting
+flake8==6.1.0                  # Linting
+mypy==1.7.1                    # Type checking
+
+# ==============================
+# Utilities
+# ==============================
+python-dotenv==1.0.0           # Load .env files
+faker==20.1.0                  # Generate seed data (Week 1, Day 5-7)
