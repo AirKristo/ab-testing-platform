@@ -4,7 +4,7 @@ from sqlalchemy import Column, Integer, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from app.database import
+from app.database import Base
 
 class Cart(Base):
     __tablename__ = "carts"
