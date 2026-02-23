@@ -62,7 +62,7 @@ class Event(Base):
     event_type = Column(String(100), nullable=False, index=True)
     event_value = Column(Numeric(10, 2), nullable=True)
     timestamp = Column(DateTime, server_default=func.now())
-    metadata = Column(JSONB, nullable=True)
+    event_metadata = Column(JSONB, nullable=True)
 
     experiment = relationship("Experiment", back_populates="events")
     user = relationship("User", back_populates="events")

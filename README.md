@@ -16,7 +16,7 @@ Production-grade A/B testing platform with advanced statistical methods, built f
 ## Getting Started
 
 ### Prerequisites
-- Python 3.11+
+- Python 3.12+
 - PostgreSQL 15+
 - Node.js 18+ (for frontend, Week 4)
 
