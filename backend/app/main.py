@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 from app.utils.logging import setup_logging, get_logger
+from app.api.products import router as products_router
 
 settings = get_settings()
 setup_logging(level="DEBUG" if settings.DEBUG else "INFO")
@@ -28,6 +29,9 @@ app.add_middleware(
 )
 
 logger.info(f"Starting {settings.APP_NAME} v0.1.0")
+
+# ---- Register API Routers ----
+app.include_router(products_router)
 
 @app.get("/health")
 def health_check() -> dict:
