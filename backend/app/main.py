@@ -10,6 +10,7 @@ from app.config import get_settings
 from app.utils.logging import setup_logging, get_logger
 from app.api.products import router as products_router
 from app.api.cart import router as cart_router
+from app.api.orders import router as orders_router
 
 settings = get_settings()
 setup_logging(level="DEBUG" if settings.DEBUG else "INFO")
@@ -34,6 +35,7 @@ logger.info(f"Starting {settings.APP_NAME} v0.1.0")
 # ---- Register API Routers ----
 app.include_router(products_router)
 app.include_router(cart_router)
+app.include_router(orders_router)
 
 @app.get("/health")
 def health_check() -> dict:
