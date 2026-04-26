@@ -24,6 +24,7 @@ def setup_logging(level: str = "INFO") -> None:
     )
     logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
     logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
+    logging.getLogger("faker").setLevel(logging.WARNING)
 
 
 def get_logger(name: str) -> logging.Logger:
