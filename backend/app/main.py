@@ -14,6 +14,7 @@ from app.api.orders import router as orders_router
 from app.api.recommendations import router as recommendations_router
 from app.api.experiments import router as experiments_router
 from app.api.assignments import router as assignments_router
+from app.api.events import router as events_router
 
 settings = get_settings()
 setup_logging(level="DEBUG" if settings.DEBUG else "INFO")
@@ -42,6 +43,7 @@ app.include_router(orders_router)
 app.include_router(recommendations_router)
 app.include_router(experiments_router)
 app.include_router(assignments_router)
+app.include_router(events_router)
 
 @app.get("/health")
 def health_check() -> dict:
