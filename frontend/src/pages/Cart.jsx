@@ -1,17 +1,64 @@
 /**
  * Cart page — view items, update quantities, proceed to checkout.
  */
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useExperiment } from '../context/ExperimentContext';
+
+// Threshold values for each variant
+const SHIPPING_THRESHOLDS = {
+  control: 50,
+  treatment: 75,
+};
+
+const EXPERIMENT_NAME = 'Free Shipping Threshold';
 
 export default function Cart() {
   const { cart, loading, fetchCart, updateQuantity, removeItem } = useCart();
+  const { getVariant, trackEvent, catalogLoaded } = useExperiment();
   const navigate = useNavigate();
 
+  const [variant, setVariant] = useState(null);
+  const [exposureTracked, setExposureTracked] = useState(false);
+
+  // Fetch cart on mount
   useEffect(() => {
     fetchCart();
   }, [fetchCart]);
+
+  // Get the user's variant once the experiment catalog has loaded
+  useEffect(() => {
+    if (!catalogLoaded) return;
+
+    async function loadVariant() {
+      const v = await getVariant(EXPERIMENT_NAME);
+      setVariant(v);
+    }
+    loadVariant();
+  }, [catalogLoaded, getVariant]);
+
+  // Track exposure event once we have both a variant AND items in the cart
+  // WHY both: A user with an empty cart doesn't really "see" the threshold UI
+  useEffect(() => {
+    if (variant && cart.items.length > 0 && !exposureTracked) {
+      trackEvent(EXPERIMENT_NAME, 'exposure', {
+        metadata: {
+          page: 'cart',
+          threshold: SHIPPING_THRESHOLDS[variant],
+          cart_total: parseFloat(cart.cart_total),
+        },
+      });
+      setExposureTracked(true);
+    }
+  }, [variant, cart.items.length, cart.cart_total, exposureTracked, trackEvent]);
+
+  // Determine the threshold (default to control if no variant assigned)
+  const threshold = variant ? SHIPPING_THRESHOLDS[variant] : SHIPPING_THRESHOLDS.control;
+  const cartTotal = parseFloat(cart.cart_total);
+  const remaining = threshold - cartTotal;
+  const qualifiesForFreeShipping = remaining <= 0;
+  const progressPercent = Math.min((cartTotal / threshold) * 100, 100);
 
   if (loading && cart.items.length === 0) {
     return (
@@ -47,6 +94,34 @@ export default function Cart() {
         Cart ({cart.item_count} {cart.item_count === 1 ? 'item' : 'items'})
       </h1>
 
+      {/* Free Shipping Progress (experiment-driven) */}
+      <div className={`rounded-lg p-4 mb-6 ${
+        qualifiesForFreeShipping
+          ? 'bg-green-50 border border-green-200'
+          : 'bg-indigo-50 border border-indigo-200'
+      }`}>
+        {qualifiesForFreeShipping ? (
+          <div className="flex items-center gap-2">
+            <span className="text-lg">🎉</span>
+            <p className="text-sm font-medium text-green-900">
+              You've qualified for free shipping!
+            </p>
+          </div>
+        ) : (
+          <>
+            <p className="text-sm font-medium text-indigo-900 mb-2">
+              Add <span className="font-bold">${remaining.toFixed(2)}</span> more for free shipping (over ${threshold})
+            </p>
+            <div className="h-2 bg-indigo-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-indigo-600 transition-all duration-300"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+          </>
+        )}
+      </div>
+
       {/* Cart items */}
       <div className="space-y-4 mb-8">
         {cart.items.map(item => (
@@ -54,12 +129,10 @@ export default function Cart() {
             key={item.id}
             className="flex items-center gap-4 bg-white border border-gray-200 rounded-lg p-4"
           >
-            {/* Product icon */}
             <div className="w-16 h-16 bg-gray-100 rounded-md flex items-center justify-center shrink-0">
               <span className="text-2xl">🛍️</span>
             </div>
 
-            {/* Details */}
             <div className="flex-1 min-w-0">
               <Link
                 to={`/products/${item.product_id}`}
@@ -72,7 +145,6 @@ export default function Cart() {
               </p>
             </div>
 
-            {/* Quantity */}
             <select
               value={item.quantity}
               onChange={(e) => updateQuantity(item.id, parseInt(e.target.value))}
@@ -83,12 +155,10 @@ export default function Cart() {
               ))}
             </select>
 
-            {/* Item total */}
             <span className="text-sm font-semibold text-gray-900 w-20 text-right">
               ${parseFloat(item.item_total).toFixed(2)}
             </span>
 
-            {/* Remove */}
             <button
               onClick={() => removeItem(item.id)}
               className="text-gray-400 hover:text-red-500 transition-colors"
@@ -108,7 +178,7 @@ export default function Cart() {
         <div className="flex justify-between items-center mb-6">
           <span className="text-lg font-semibold text-gray-900">Total</span>
           <span className="text-2xl font-bold text-gray-900">
-            ${parseFloat(cart.cart_total).toFixed(2)}
+            ${cartTotal.toFixed(2)}
           </span>
         </div>
         <button

@@ -4,12 +4,14 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useExperiment } from '../context/ExperimentContext';
 
 export default function Checkout() {
   const { cart, fetchCart, checkout, loading } = useCart();
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [processing, setProcessing] = useState(false);
+  const { trackEvent } = useExperiment();
 
   useEffect(() => {
     fetchCart();
@@ -19,6 +21,15 @@ export default function Checkout() {
     setProcessing(true);
     const result = await checkout();
     if (result) {
+      // Track the purchase event for the Free Shipping Threshold experiment
+      // Even though Checkout doesn't "see" the threshold, this is where conversion happens
+      trackEvent('Free Shipping Threshold', 'purchase', {
+        value: parseFloat(result.total_amount),
+        metadata: {
+          order_id: result.id,
+          item_count: result.item_count,
+        },
+      });
       setOrder(result);
     }
     setProcessing(false);
