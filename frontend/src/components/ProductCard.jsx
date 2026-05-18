@@ -3,17 +3,49 @@
  */
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { useState } from 'react';
+import { useExperiment } from '../context/ExperimentContext';
+import { useState, useEffect } from 'react';
+
+const EXPERIMENT_NAME = 'CTA Button Text';
+
+const BUTTON_TEXT = {
+  control: 'Add',
+  treatment: 'Buy Now',
+};
 
 export default function ProductCard({ product }) {
   const { addToCart } = useCart();
+  const { getVariant, trackEvent, catalogLoaded } = useExperiment();
+
+  const [variant, setVariant] = useState(null);
   const [added, setAdded] = useState(false);
 
+  // Load variant assignment
+  useEffect(() => {
+    if (!catalogLoaded) return;
+
+    async function loadVariant() {
+      const v = await getVariant(EXPERIMENT_NAME);
+      setVariant(v);
+    }
+    loadVariant();
+  }, [catalogLoaded, getVariant]);
+
+  // Determine button text (default to control if no variant)
+  const buttonText = variant ? BUTTON_TEXT[variant] : BUTTON_TEXT.control;
+
   const handleAddToCart = async (e) => {
-    e.preventDefault(); // Prevent navigation from Link wrapper
+    e.preventDefault();
     const success = await addToCart(product.id);
     if (success) {
       setAdded(true);
+      // Track the conversion event for this experiment
+      trackEvent(EXPERIMENT_NAME, 'add_to_cart', {
+        metadata: {
+          product_id: product.id,
+          product_name: product.name,
+        },
+      });
       setTimeout(() => setAdded(false), 1500);
     }
   };
@@ -22,8 +54,13 @@ export default function ProductCard({ product }) {
     <Link
       to={`/products/${product.id}`}
       className="group bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
+      onClick={() => {
+        // Track that the product card was viewed/clicked (exposure)
+        trackEvent(EXPERIMENT_NAME, 'exposure', {
+          metadata: { product_id: product.id },
+        });
+      }}
     >
-      {/* Product image placeholder */}
       <div className="aspect-square bg-gray-100 flex items-center justify-center p-6">
         <span className="text-3xl text-gray-400 group-hover:scale-110 transition-transform">
           🛍️
@@ -49,7 +86,7 @@ export default function ProductCard({ product }) {
                 : 'bg-indigo-600 text-white hover:bg-indigo-700'
             }`}
           >
-            {added ? '✓ Added' : 'Add'}
+            {added ? '✓ Added' : buttonText}
           </button>
         </div>
       </div>
