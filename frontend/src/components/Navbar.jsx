@@ -29,6 +29,13 @@ export default function Navbar() {
             Orders
           </Link>
 
+          <Link
+            to="/admin"
+            className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            Admin
+          </Link>
+
           <Link to="/cart" className="relative">
             <svg
               xmlns="http://www.w3.org/2000/svg"
