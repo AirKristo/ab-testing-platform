@@ -3,7 +3,6 @@
  */
 import { useState, useEffect } from 'react';
 import api from '../api/client';
-import { useState } from 'react';
 import ExperimentResults from '../components/ExperimentResults';
 
 const STATUS_COLORS = {

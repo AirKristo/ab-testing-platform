@@ -7,7 +7,7 @@ import api from '../api/client';
 const CartContext = createContext();
 
 // Hardcoded user ID for demo purposes
-export const DEMO_USER_ID = 3;
+export const DEMO_USER_ID = 6;
 
 export function CartProvider({ children }) {
   const [cart, setCart] = useState({ items: [], cart_total: 0, item_count: 0 });
