@@ -3,6 +3,8 @@
  */
 import { useState, useEffect } from 'react';
 import api from '../api/client';
+import { useState } from 'react';
+import ExperimentResults from '../components/ExperimentResults';
 
 const STATUS_COLORS = {
   draft: 'bg-gray-100 text-gray-700',
@@ -90,6 +92,10 @@ export default function Admin() {
 
 function ExperimentCard({ experiment, onAction }) {
   const { id, name, description, status, variants, metrics, start_date, end_date } = experiment;
+  const [showResults, setShowResults] = useState(false);
+
+  // Only show results for experiments that have started
+  const hasData = status === 'running' || status === 'paused' || status === 'completed';
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6">
@@ -111,7 +117,6 @@ function ExperimentCard({ experiment, onAction }) {
           </p>
         </div>
 
-        {/* Action buttons */}
         <div className="flex gap-2">
           {status === 'draft' && (
             <button
@@ -156,7 +161,6 @@ function ExperimentCard({ experiment, onAction }) {
         </div>
       </div>
 
-      {/* Variants and metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t border-gray-100">
         <div>
           <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
@@ -188,6 +192,25 @@ function ExperimentCard({ experiment, onAction }) {
           )}
         </div>
       </div>
+
+      {hasData && (
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <button
+            onClick={() => setShowResults(!showResults)}
+            className="text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
+          >
+            {showResults ? '▼ Hide Results' : '▶ View Statistical Results'}
+          </button>
+          {showResults && (
+            <div className="mt-3">
+              <ExperimentResults
+                experimentId={id}
+                defaultMetric={metrics.primary}
+              />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
