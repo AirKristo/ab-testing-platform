@@ -47,3 +47,43 @@ class ExperimentResultsResponse(BaseModel):
     confidence_level: float
     metrics: list[VariantMetricsResponse]
     tests: list[TTestResultResponse]
+
+class CupedDiagnostics(BaseModel):
+    """
+    Diagnostic info about the CUPED adjustment.
+
+    Useful for debugging and understanding why CUPED helped (or didn't).
+    """
+    covariate_type: str
+    theta: float = Field(..., description="The regression slope used in the adjustment")
+    covariate_correlation: float = Field(
+        ...,
+        description="Correlation between covariate and outcome (signed)",
+    )
+    variance_reduction: float = Field(
+        ...,
+        description="Proportion of variance reduced (rho^2). 0 to 1.",
+    )
+
+
+class CupedResultsResponse(BaseModel):
+    """
+    Experiment results with both raw and CUPED-adjusted analysis.
+
+    Lets the frontend show a before/after comparison.
+    """
+    experiment_id: int
+    experiment_name: str
+    metric_name: str
+    confidence_level: float
+
+    # Raw (unadjusted) analysis
+    metrics_raw: list[VariantMetricsResponse]
+    tests_raw: list[TTestResultResponse]
+
+    # CUPED-adjusted analysis
+    metrics_cuped: list[VariantMetricsResponse]
+    tests_cuped: list[TTestResultResponse]
+
+    # CUPED diagnostics
+    cuped: CupedDiagnostics
