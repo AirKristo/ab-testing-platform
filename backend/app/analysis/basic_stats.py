@@ -129,6 +129,50 @@ def _get_user_metric_values(
     return dict(by_variant)
 
 
+def _get_user_outcomes_by_user(
+    db: Session,
+    experiment_id: int,
+    metric_name: str,
+) -> dict[int, tuple[str, float]]:
+    """
+    Per-user outcome data with user_id keys.
+    """
+    event_type = METRIC_EVENT_TYPES.get(metric_name)
+    if event_type is None:
+        raise ValueError(f"Unknown metric: '{metric_name}'")
+
+    metric_kind = METRIC_KIND[metric_name]
+
+    assignments = (
+        db.query(Assignment)
+        .filter(Assignment.experiment_id == experiment_id)
+        .all()
+    )
+
+    # Initialize: every assigned user starts at 0 (intent-to-treat)
+    user_data: dict[int, list] = {a.user_id: [a.variant_name, 0.0] for a in assignments}
+
+    events = (
+        db.query(Event)
+        .filter(
+            Event.experiment_id == experiment_id,
+            Event.event_type == event_type,
+        )
+        .all()
+    )
+
+    for event in events:
+        if event.user_id not in user_data:
+            continue
+        if metric_kind == "binary":
+            user_data[event.user_id][1] = 1.0
+        else:
+            value = float(event.event_value) if event.event_value is not None else 0.0
+            user_data[event.user_id][1] += value
+
+    return {uid: (data[0], data[1]) for uid, data in user_data.items()}
+
+
 def calculate_metrics(
     db: Session,
     experiment_id: int,
